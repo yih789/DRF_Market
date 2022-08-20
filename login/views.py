@@ -121,8 +121,8 @@ class ManageUserAPI(CommonView):
     # 마이페이지: 사용자 이름, 전화번호, 사용자가 작성한 글 목록, 사용자가 작성한 댓글 목록
     def get(self, request):
         user = get_object_or_404(User, pk=self.user_id)
-        print(user.contents.all())
-        print(user.comments.all())
+        #print(user.contents.all())
+        #print(user.comments.all())
         serializer = MypageSerializer(user)
         return Response(serializer.data, status.HTTP_200_OK)
 
@@ -137,12 +137,14 @@ class ManageUserAPI(CommonView):
     # 회원 정보 수정: 이름, 전화번호, 아이디
     def put(self, request):
         user = get_object_or_404(User, pk=self.user_id)
-        # 기존 User 정보를 가져오고, 사용자가 새롭게 요청한 데이터를 넣어 저장한다.
-        serializer = UserInfoUpdateSerializer(instance=user, data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        user.name = request.data.get('name', user.name)
+        user.mobile = request.data.get('mobile', user.mobile)
+        user.username = request.data.get('username', user.username)
+        user.save()
+
+        serializer = UserInfoUpdateSerializer(user)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+        #return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
     @swagger_auto_schema(tags=["회원탈퇴"],
