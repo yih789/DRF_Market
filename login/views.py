@@ -16,6 +16,7 @@ from common.common import CommonView
 
 from django.contrib.auth.hashers import check_password
 
+from .permissions import UserPermission
 
 # Register는 post만 수행
 class RegisterAPI(APIView):
@@ -82,13 +83,16 @@ class LoginAPI(APIView):
                          })
     def post(self, request):
         serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True) # raise_exceiption을 통해 raise된 에러를 전달
-        token = serializer.validated_data # validated_data: validate()의 리턴값을 의미, 현재는 Token
-        return Response({"token": token, "user_id": request.data['username']}, status=status.HTTP_200_OK)
+        if serializer.is_valid(raise_exception=True): # raise_exceiption을 통해 raise된 에러를 전달
+            token = serializer.validated_data # validated_data: validate()의 리턴값을 의미, 현재는 Token
+            return Response({"token": token, "user_id": request.data['username']}, status=status.HTTP_200_OK)
 
 
 # 회원 비밀번호 수정
 class ChangePasswordAPI(CommonView):
+    permission_classes = [UserPermission]
+
+
     @swagger_auto_schema(tags=["비밀번호 변경"],
                          request_body=ChangePasswordSerializer,
                          responses={
@@ -96,15 +100,17 @@ class ChangePasswordAPI(CommonView):
                              400: '입력값 유효성 검증 실패',
                              403: '인증 에러',
                              500: '서버 에러'
-                         })
+                         },
+                         manual_parameters=[
+                             openapi.Parameter('Authorization', openapi.IN_HEADER, description="AUTH",
+                                               type=openapi.TYPE_STRING)]
+                         )
     def put(self, request):
         serializer = ChangePasswordSerializer(data=request.data)
-
         # 유효성 검사
         if serializer.is_valid():
-            user = get_object_or_404(User, pk=self.user_id)
+            user = get_object_or_404(User, pk=request.user)
             print(self.user_id)
-
             # check_password: DB에 저장된 사용자의 비밀번호 AND 사용자가 입력한 비밀번호 비교
             if check_password(request.data['old_password'], user.password):
                 if request.data['new_password1'] == request.data['new_password2']:
@@ -118,11 +124,25 @@ class ChangePasswordAPI(CommonView):
 
 # 권한 필요
 class ManageUserAPI(CommonView):
+    permission_classes = [UserPermission]
+
+
+    @swagger_auto_schema(tags=["마이페이지"],
+                         request_body=None,
+                         responses={
+                             200: MypageSerializer,
+                             400: '입력값 유효성 검증 실패',
+                             403: '인증 에러',
+                             500: '서버 에러'
+                         },
+                         manual_parameters=[
+                             openapi.Parameter('Authorization', openapi.IN_HEADER, description="AUTH",
+                                               type=openapi.TYPE_STRING)]
+                         )
     # 마이페이지: 사용자 이름, 전화번호, 사용자가 작성한 글 목록, 사용자가 작성한 댓글 목록
     def get(self, request):
-        user = get_object_or_404(User, pk=self.user_id)
-        #print(user.contents.all())
-        #print(user.comments.all())
+        print(request.user)
+        user = get_object_or_404(User, pk=request.user)
         serializer = MypageSerializer(user)
         return Response(serializer.data, status.HTTP_200_OK)
 
@@ -133,10 +153,14 @@ class ManageUserAPI(CommonView):
                              400: '입력값 유효성 검증 실패',
                              403: '인증 에러',
                              500: '서버 에러'
-                         })
+                         },
+                         manual_parameters=[
+                             openapi.Parameter('Authorization', openapi.IN_HEADER, description="AUTH",
+                                               type=openapi.TYPE_STRING)]
+                         )
     # 회원 정보 수정: 이름, 전화번호, 아이디
     def put(self, request):
-        user = get_object_or_404(User, pk=self.user_id)
+        user = get_object_or_404(User, pk=request.user)
         user.name = request.data.get('name', user.name)
         user.mobile = request.data.get('mobile', user.mobile)
         user.username = request.data.get('username', user.username)
@@ -153,9 +177,13 @@ class ManageUserAPI(CommonView):
                              400: '입력값 유효성 검증 실패',
                              403: '인증 에러',
                              500: '서버 에러'
-                         })
+                         },
+                         manual_parameters=[
+                             openapi.Parameter('Authorization', openapi.IN_HEADER, description="AUTH",
+                                               type=openapi.TYPE_STRING)]
+                         )
     # 회원 탈퇴
     def delete(self, request):
-        user = get_object_or_404(User, pk=self.user_id)
+        user = get_object_or_404(User, pk=request.user)
         user.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
