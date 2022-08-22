@@ -24,6 +24,8 @@ logger = logging.getLogger('mylogger')  # 해당 이름의 로거를 불러온�
 # 공통 영역
 from common.common import CommonView
 
+from .permissions import ContentPermission, CommentPermission
+
 
 # Content CREATE
 class ContentCreateAPI(CommonView):
@@ -58,7 +60,6 @@ class ContentListAPI(APIView, PaginationHandlerMixin):
 
         instance = Content.objects.filter(title__icontains=word) | Content.objects.filter(
             text__icontains=word) | Content.objects.filter(writer_id__username__icontains=word)
-        print(instance)
 
         page = self.paginate_queryset(instance)
         if page is not None:
@@ -71,8 +72,12 @@ class ContentListAPI(APIView, PaginationHandlerMixin):
 
 # Content: pk 필요 => UPDATE, DELETE, RETRIEVE
 class ContentAPI(APIView):
+    permission_classes = [ContentPermission]
+
+
     # READ RETRIEVE
     def get(self, request, content_id):
+
         content = get_object_or_404(Content, id=content_id)
         serializer = ContentSerializer(content)
         return Response(serializer.data, status=status.HTTP_200_OK)
@@ -106,9 +111,20 @@ class CommentsAPI(CommonView):
 
 # Comment: pk 필요
 class CommentAPI(APIView):
+    permission_classes = [CommentPermission]
+    '''
+    def get_queryset(self):
+        # all(), 모든 데이터를 갖고 오겠다
+        return Comment.objects.all()
+    '''
+    def get_object(self, comment_id):
+        comment = get_object_or_404(Comment, pk=comment_id)
+        self.check_object_permissions(self.request, comment)
+        return comment
+
     # UPDATE
     def put(self, request, comment_id):
-        comment = get_object_or_404(Comment, id=comment_id)
+        comment = self.get_object(comment_id)
         comment.text = request.data.get('text', comment.text)
         comment.save()
         serializer = CommentSerializer(comment)
@@ -117,7 +133,7 @@ class CommentAPI(APIView):
 
     # DELETE
     def delete(self, request, comment_id):
-        comment = get_object_or_404(Comment, id=comment_id)
+        comment = self.get_object(comment_id)
         comment.delete()  # 삭제
         return Response({"massage": "success delete"}, status=status.HTTP_200_OK)
 
