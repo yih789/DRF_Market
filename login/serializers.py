@@ -6,6 +6,7 @@ from knox.models import AuthToken
 
 from django.contrib.auth import authenticate
 
+
 from content.serializers import CommentCreateSerializer, ContentCreateSerializer
 
 # read_only: API 출력에는 포함되지만 입력에는 포함되지 않는 필드
