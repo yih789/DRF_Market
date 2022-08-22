@@ -26,6 +26,12 @@ from common.common import CommonView
 
 from .permissions import ContentPermission, CommentPermission
 
+from rest_framework.exceptions import ParseError
+
+# 로거 사용
+import logging
+logger = logging.getLogger('error')
+
 
 # Content CREATE
 class ContentCreateAPI(CommonView):
@@ -49,7 +55,8 @@ class ContentCreateAPI(CommonView):
         if serializer.is_valid():
             serializer.save(writer_id=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)  # response
-
+        logger.error('회원가입 정보 입력 실패')
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # Content READ_LIST => list, filter_list
 # Pagination
@@ -152,6 +159,7 @@ class ContentAPI(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_200_OK)
+        logger.error('게시글 수정 입력 실패')
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     @swagger_auto_schema(tags=["하나의 게시글 삭제"],
@@ -196,7 +204,9 @@ class CommentsAPI(CommonView):
             user = get_object_or_404(User, pk=request.user)
             serializer.save(commenter_id=user)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        return Response({"massage": "error"}, status=status.HTTP_400_BAD_REQUEST)
+        logger.error('댓글 입력 실패')
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 
 # Comment: pk 필요
 class CommentAPI(APIView):
@@ -233,10 +243,12 @@ class CommentAPI(APIView):
     # UPDATE
     def put(self, request, comment_id):
         comment = self.get_object(comment_id)
+        if request.data.get('text') == '': # 댓글로 빈 문자열을 넣으면
+            raise ParseError("댓글을 작성하세요.")
+
         comment.text = request.data.get('text', comment.text)
         comment.save()
         serializer = CommentSerializer(comment)
-
         return Response(serializer.data, status=status.HTTP_200_OK)
 
     @swagger_auto_schema(tags=["댓글 삭제"],
