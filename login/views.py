@@ -18,6 +18,11 @@ from django.contrib.auth.hashers import check_password
 
 from .permissions import UserPermission
 
+# 로거 사용
+import logging
+logger = logging.getLogger('error')
+
+
 # Register는 post만 수행
 class RegisterAPI(APIView):
     # Output schema 정의
@@ -57,6 +62,7 @@ class RegisterAPI(APIView):
         if serializer.is_valid(raise_exception=True):
             serializer.save() # serializer의 save() 요청 => 기본 create() 함수 작동
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # Login도 post만 수행
@@ -86,7 +92,7 @@ class LoginAPI(APIView):
         if serializer.is_valid(raise_exception=True): # raise_exceiption을 통해 raise된 에러를 전달
             token = serializer.validated_data # validated_data: validate()의 리턴값을 의미, 현재는 Token
             return Response({"token": token, "user_id": request.data['username']}, status=status.HTTP_200_OK)
-
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # 회원 비밀번호 수정
 class ChangePasswordAPI(CommonView):
@@ -110,7 +116,6 @@ class ChangePasswordAPI(CommonView):
         # 유효성 검사
         if serializer.is_valid():
             user = get_object_or_404(User, pk=request.user)
-            print(self.user_id)
             # check_password: DB에 저장된 사용자의 비밀번호 AND 사용자가 입력한 비밀번호 비교
             if check_password(request.data['old_password'], user.password):
                 if request.data['new_password1'] == request.data['new_password2']:
@@ -141,7 +146,6 @@ class ManageUserAPI(CommonView):
                          )
     # 마이페이지: 사용자 이름, 전화번호, 사용자가 작성한 글 목록, 사용자가 작성한 댓글 목록
     def get(self, request):
-        print(request.user)
         user = get_object_or_404(User, pk=request.user)
         serializer = MypageSerializer(user)
         return Response(serializer.data, status.HTTP_200_OK)
@@ -168,7 +172,6 @@ class ManageUserAPI(CommonView):
 
         serializer = UserInfoUpdateSerializer(user)
         return Response(serializer.data, status=status.HTTP_200_OK)
-        #return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
     @swagger_auto_schema(tags=["회원탈퇴"],

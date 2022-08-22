@@ -9,6 +9,10 @@ from django.contrib.auth import authenticate
 
 from content.serializers import CommentCreateSerializer, ContentCreateSerializer
 
+# 로거 사용
+import logging
+logger = logging.getLogger('error')
+
 # read_only: API 출력에는 포함되지만 입력에는 포함되지 않는 필드
 # write_only: 인스턴스 생성 시에는 입력에 포함되지만 직렬화에는 포함되지 않게
 # required: 역직렬화 중에 제공되지 않으면 오류 발생
@@ -32,6 +36,7 @@ class RegisterSerializer(serializers.ModelSerializer):
     # 유효성 검사
     def validate(self, data):
         if data['password1'] != data['password2']:
+            logger.error('비밀번호 매칭 실패')
             raise serializers.ValidationError({"password": "Password fields didn't match."})
         return data
 
@@ -60,7 +65,7 @@ class LoginSerializer(serializers.Serializer):
             token = AuthToken.objects.create(user=user)[1]
             return token
         # 사용자 인증 실패하면 에러 출력
-        raise serializers.ValidationError({"error": "로그인 실패"})
+        raise serializers.ValidationError({"Retry Login": "로그인 실패"})
 
 
 # 비밀번호 수정
