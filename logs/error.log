@@ -1,0 +1,11 @@
+ERROR 2022-08-22 21:29:49,966 views C:\Users\USER\PycharmProjects\DRF\DRF_market\content\views.py 138 24560 11844 회원가입 정보 입력 실패
+ERROR 2022-08-22 21:29:51,048 views C:\Users\USER\PycharmProjects\DRF\DRF_market\content\views.py 138 24560 11844 회원가입 정보 입력 실패
+ERROR 2022-08-22 21:29:51,423 views C:\Users\USER\PycharmProjects\DRF\DRF_market\content\views.py 138 24560 11844 회원가입 정보 입력 실패
+ERROR 2022-08-22 21:29:52,155 views C:\Users\USER\PycharmProjects\DRF\DRF_market\content\views.py 138 24560 11844 회원가입 정보 입력 실패
+ERROR 2022-08-22 21:29:52,316 views C:\Users\USER\PycharmProjects\DRF\DRF_market\content\views.py 138 24560 11844 회원가입 정보 입력 실패
+ERROR 2022-08-22 21:41:23,392 views C:\Users\USER\PycharmProjects\DRF\DRF_market\content\views.py 58 1620 8704 회원가입 정보 입력 실패
+ERROR 2022-08-22 21:41:29,475 views C:\Users\USER\PycharmProjects\DRF\DRF_market\content\views.py 58 1620 8704 회원가입 정보 입력 실패
+ERROR 2022-08-22 21:42:09,874 views C:\Users\USER\PycharmProjects\DRF\DRF_market\content\views.py 58 1620 8704 회원가입 정보 입력 실패
+ERROR 2022-08-22 21:42:10,474 views C:\Users\USER\PycharmProjects\DRF\DRF_market\content\views.py 58 1620 8704 회원가입 정보 입력 실패
+ERROR 2022-08-22 21:51:12,667 serializers C:\Users\USER\PycharmProjects\DRF\DRF_market\login\serializers.py 39 22820 8212 비밀번호 매칭 실패
+ERROR 2022-08-22 21:51:13,398 serializers C:\Users\USER\PycharmProjects\DRF\DRF_market\login\serializers.py 39 22820 8212 비밀번호 매칭 실패
